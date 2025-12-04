@@ -21,6 +21,12 @@ pipeline {
                 sh 'docker-compose --version'
             }
         }
+        stage('Backup Current Version') {
+            steps {
+                sh 'chmod +x rollback.sh'
+                sh './rollback.sh'
+            }
+        }
         stage('Detect Changed Services') {
             steps {
                 script {
@@ -169,10 +175,7 @@ pipeline {
                     parallel CHANGED_SERVER_CONFIG.collectEntries {
                         svc -> ["build-docker-${svc}": {
                             dir("backend/services/${svc}") {
-                                sh "docker tag wiwadev01/${svc}:${DOCKER_IMAGE_TAG_LAST} wiwadev01/${svc}:${DOCKER_IMAGE_TAG_PREV}"
                                 sh "docker build -t wiwadev01/${svc}:${DOCKER_IMAGE_TAG_LAST} ."
-                                sh "docker push wiwadev01/${svc}:${DOCKER_IMAGE_TAG_PREV}"
-                                sh "docker push wiwadev01/${svc}:${DOCKER_IMAGE_TAG_LAST}"
                             }
                         }]
                     }
@@ -191,10 +194,7 @@ pipeline {
                     parallel CHANGED_SERVICES.collectEntries {
                         svc -> ["build-docker-${svc}": {
                             dir("backend/services/${svc}") {
-                                sh "docker tag wiwadev01/${svc}-service:${DOCKER_IMAGE_TAG_LAST} wiwadev01/${svc}-service:${DOCKER_IMAGE_TAG_PREV}"
                                 sh "docker build -t wiwadev01/${svc}-service:${DOCKER_IMAGE_TAG_LAST} ."
-                                sh "docker push wiwadev01/${svc}-service:${DOCKER_IMAGE_TAG_PREV}"
-                                sh "docker push wiwadev01/${svc}-service:${DOCKER_IMAGE_TAG_LAST}"
                             }
                         }]
                     }
@@ -210,10 +210,7 @@ pipeline {
             }
             steps {
                 dir('frontend') {
-                    sh "docker tag wiwadev01/front-service:${DOCKER_IMAGE_TAG_LAST} wiwadev01/front-service:${DOCKER_IMAGE_TAG_PREV}"
                     sh "docker build -t wiwadev01/front-service:${DOCKER_IMAGE_TAG_LAST} ."
-                    sh "docker push wiwadev01/front-service:${DOCKER_IMAGE_TAG_PREV}"
-                    sh "docker push wiwadev01/front-service:${DOCKER_IMAGE_TAG_LAST}"
                 }
             }
         }
@@ -243,6 +240,10 @@ pipeline {
             }
 
             post {
+                success{
+                    sh 'chmod +x push-img-latest.sh'
+                    sh './push-img-latest.sh'   
+                }
                 failure {
                     echo '❌ Échec du déploiement → Rollback...'
 
@@ -253,7 +254,7 @@ pipeline {
                     script {
                         echo '🔄 Rollback des services modifiés...'
 
-                        def services = ['user-service', 'product-service', 'media-service', 'front-service','config-server','discovery','gateway']
+                        def services = ['user-service', 'product-service', 'media-service', 'front-service', 'config-server', 'discovery', 'gateway']
                             services.each { svc ->
                                 echo "↩️ Rollback du service : ${svc}"
 
@@ -263,7 +264,6 @@ pipeline {
                         docker tag wiwadev01/${svc}:${DOCKER_IMAGE_TAG_PREV} wiwadev01/${svc}:${DOCKER_IMAGE_TAG_LAST}
                     """
                             }
-
                     }
 
                     // 3️⃣ Redémarrer avec les anciennes images
