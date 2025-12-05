@@ -21,6 +21,13 @@ pipeline {
                 sh 'docker-compose --version'
             }
         }
+         // Docker Login
+        stage('Docker Login') {
+            steps {
+                sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
+        
         stage('Backup Current Version') {
             steps {
                 sh 'chmod +x rollback.sh'
@@ -156,12 +163,7 @@ pipeline {
             }
         }
 
-        // Docker Login
-        stage('Docker Login') {
-            steps {
-                sh 'echo $DOCKER_HUB_CREDENTIALS_PSW | docker login -u $DOCKER_HUB_CREDENTIALS_USR --password-stdin'
-            }
-        }
+       
 
         // Build Docker Images for Backend Server Config
         stage('Build Backend Server Config Docker Images') {
@@ -220,23 +222,6 @@ pipeline {
                 sh "docker-compose -f ${COMPOSE_FILE} pull"
                 sh 'chmod +x start-app.sh'
                 sh './start-app.sh'
-            // echo '=== 🚀 Démarrage automatique des services Docker ==='
-            // // # 2️⃣ Démarrer uniquement le Config Server
-            // echo '[1/3] Lancement du Config Server...'
-            // sh 'docker-compose -f docker-compose.yml up -d config-server'
-            // // Attendre 15 secondes
-            // echo 'Attente de 10 secondes que le Config Server soit prêt...'
-            // sh 'sleep 10'
-            // // 2️⃣ Démarrer uniquement le discovery
-            // echo '[2/3] Lancement du discovery...'
-            // sh 'docker-compose -f docker-compose.yml up -d discovery'
-            // // Attendre 15 secondes
-            // echo 'Attente de 10 secondes que le discovery soit prêt...'
-            // sh 'sleep 10'
-            // // 3️⃣ Démarrer le reste des microservices
-            // echo '[3/3] Lancement du reste des microservices...'
-            // sh 'docker-compose -f docker-compose.yml up -d'
-            // echo '=== ✔ Tous les services sont démarrés ! ==='
             }
 
             post {
