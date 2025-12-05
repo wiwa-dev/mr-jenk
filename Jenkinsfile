@@ -111,6 +111,7 @@ pipeline {
                 script {
                     dir('frontend') {
                         sh 'npm ci'
+                        sh 'export CHROME_BIN=/chrome/linux-143.0.7499.40/chrome-linux64/chrome'
                         sh 'npm run test'
                     }
                 }
