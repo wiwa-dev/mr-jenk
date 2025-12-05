@@ -13,6 +13,7 @@ SERVICES=(
   "user-service"
   "product-service"
   "media-service"
+  "front-service"
 )
 
 DOCKER_USER="wiwadev01"
