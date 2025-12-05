@@ -251,7 +251,7 @@ pipeline {
                             services.each { svc ->
                                 echo "↩️ Rollback du service : ${svc}"
 
-                                // Pull de l'ancienne version
+                                // Pull de l'ancienne version...
                                 sh """
                         docker pull wiwadev01/${svc}:${DOCKER_IMAGE_TAG_PREV} || true
                         docker tag wiwadev01/${svc}:${DOCKER_IMAGE_TAG_PREV} wiwadev01/${svc}:${DOCKER_IMAGE_TAG_LAST}
