@@ -163,7 +163,11 @@ pipeline {
             }
             steps {
                 dir('frontend') {
-                    sh 'npx ng build --configuration production'
+                    sh '''
+                    rm -rf dist
+                    npm ci
+                    npx ng build --configuration production
+                    '''
                 }
             }
         }
